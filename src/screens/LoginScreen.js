@@ -9,16 +9,18 @@ import {
     SafeAreaView,
 } from "react-native";
 import InteractiveTextInput from "react-native-text-input-interactive";
-const { login } = require("../requests/login");
-const { storeUserSession } = require("../requests/token");
+import { useNavigation } from "@react-navigation/native";
+import { ToastAlert } from "../components/ToastAlert";
+
+import { login } from "../requests/login";
+import { storeUserSession } from "../requests/secret";
 
 const { width: ScreenWidth } = Dimensions.get("screen");
-
-const checkLogin = () => {};
 
 export default function LoginScreen() {
     const [username, setUsername] = useState(0);
     const [password, setPassword] = useState(0);
+    const navigation = useNavigation();
 
     const renderHeader = () => (
         <View style={{ marginTop: 24 }}>
@@ -38,6 +40,7 @@ export default function LoginScreen() {
         <View style={{ marginTop: 52 }}>
             <InteractiveTextInput
                 autoCapitalize="none"
+                placeholder="Username"
                 textInputStyle={{ width: ScreenWidth * 0.88 }}
                 onChangeText={(text) => setUsername(text)}
             />
@@ -74,7 +77,15 @@ export default function LoginScreen() {
                     height: 5,
                 },
             }}
-            onPress={() => storeUserSession(username, password)}
+            onPress={() => {
+                login(username, password, navigation, (status) => {
+                    if (status != 1) {
+                        ToastAlert("Invalid Credentials !");
+                        return;
+                    }
+                    storeUserSession(username, password, navigation);
+                });
+            }}
         >
             <Text style={{ fontWeight: "bold", color: "#fff" }}>Login</Text>
         </TouchableOpacity>
@@ -83,6 +94,7 @@ export default function LoginScreen() {
     const renderDontHaveAccountButton = () => (
         <TouchableOpacity
             style={{ marginTop: ScreenWidth * 0.65, alignItems: "center" }}
+            onPress={() => navigation.navigate("Register")}
         >
             <Text style={{ fontWeight: "700" }}>Don't have an account</Text>
         </TouchableOpacity>

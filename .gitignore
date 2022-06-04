@@ -9,6 +9,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 yarn.lock
+*.apk
 
 # macOS
 .DS_Store

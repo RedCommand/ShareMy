@@ -1,6 +1,6 @@
 exports.processResponse = (response) => {
     const statusCode = response.status;
-    const data = response.json();
+    const data = response.json()//.catch(() => {return {statusCode: 500, data: null}});
     return Promise.all([statusCode, data]).then((res) => ({
         statusCode: res[0],
         data: res[1],

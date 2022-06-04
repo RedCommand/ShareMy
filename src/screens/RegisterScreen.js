@@ -1,34 +1,40 @@
 import React, { useState } from "react";
 import {
-    Alert,
     Text,
     View,
     TouchableOpacity,
-    Image,
+    ScrollView,
     Dimensions,
     SafeAreaView,
 } from "react-native";
 import InteractiveTextInput from "react-native-text-input-interactive";
-const { login } = require("../requests/login");
-const { storeUserSession } = require("../requests/token");
+import { useNavigation } from "@react-navigation/native";
+import { ToastAlert } from "../components/ToastAlert";
+
+import { register } from "../requests/register";
+import { storeUserSession } from "../requests/secret";
 
 const { width: ScreenWidth } = Dimensions.get("screen");
 
-const checkLogin = () => {};
-
-export default function LoginScreen() {
+export default function RegisterScreen() {
+    const [lastname, setLastname] = useState(0);
+    const [firstname, setFirstname] = useState(0);
+    const [email, setEmail] = useState(0);
     const [username, setUsername] = useState(0);
     const [password, setPassword] = useState(0);
+    const [checkPassword, setCheckPassword] = useState(0);
+
+    const navigation = useNavigation();
 
     const renderHeader = () => (
         <View style={{ marginTop: 24 }}>
             <Text
                 style={{ color: "#2a41cb", fontWeight: "bold", fontSize: 32 }}
             >
-                Welcome Back 👋
+                Hello There 👋
             </Text>
             <Text style={{ color: "#8e9496", letterSpacing: 1, marginTop: 8 }}>
-                I am so happy to see you. You can continue to login for manage
+                I am so happy to meet you. You can register and start managing
                 your cards !
             </Text>
         </View>
@@ -38,8 +44,27 @@ export default function LoginScreen() {
         <View style={{ marginTop: 52 }}>
             <InteractiveTextInput
                 autoCapitalize="none"
+                placeholder="Username"
                 textInputStyle={{ width: ScreenWidth * 0.88 }}
                 onChangeText={(text) => setUsername(text)}
+            />
+            <InteractiveTextInput
+                autoCapitalize="none"
+                placeholder="Firstname"
+                textInputStyle={{ width: ScreenWidth * 0.88, marginTop: 15 }}
+                onChangeText={(text) => setFirstname(text)}
+            />
+            <InteractiveTextInput
+                autoCapitalize="none"
+                placeholder="Lastname"
+                textInputStyle={{ width: ScreenWidth * 0.88, marginTop: 15 }}
+                onChangeText={(text) => setLastname(text)}
+            />
+            <InteractiveTextInput
+                autoCapitalize="none"
+                placeholder="Email"
+                textInputStyle={{ width: ScreenWidth * 0.88, marginTop: 15 }}
+                onChangeText={(text) => setEmail(text)}
             />
             <InteractiveTextInput
                 autoCapitalize="none"
@@ -48,15 +73,17 @@ export default function LoginScreen() {
                 secureTextEntry
                 onChangeText={(text) => setPassword(text)}
             />
-            <TouchableOpacity style={{ marginLeft: "auto", marginTop: 16 }}>
-                <Text style={{ color: "#2a41cb", fontWeight: "500" }}>
-                    Forgot Password? (Not implemented yet)
-                </Text>
-            </TouchableOpacity>
+            <InteractiveTextInput
+                autoCapitalize="none"
+                textInputStyle={{ width: ScreenWidth * 0.88, marginTop: 15 }}
+                placeholder="Verify password"
+                secureTextEntry
+                onChangeText={(text) => setCheckPassword(text)}
+            />
         </View>
     );
 
-    const renderLoginButton = () => (
+    const renderRegisterButton = () => (
         <TouchableOpacity
             style={{
                 height: 50,
@@ -74,17 +101,42 @@ export default function LoginScreen() {
                     height: 5,
                 },
             }}
-            onPress={() => storeUserSession(username, password)}
+            onPress={() => {
+                if (password != checkPassword) {
+                    ToastAlert("Password doesn't match !");
+                    return;
+                }
+                register(
+                    username,
+                    password,
+                    lastname,
+                    firstname,
+                    email,
+                    navigation,
+                    (status) => {
+                        if (status != 1) {
+                            ToastAlert("username or email already taken !");
+                            return;
+                        }
+                        storeUserSession(username, password, navigation);
+                    }
+                );
+            }}
         >
-            <Text style={{ fontWeight: "bold", color: "#fff" }}>Login</Text>
+            <Text style={{ fontWeight: "bold", color: "#fff" }}>Register</Text>
         </TouchableOpacity>
     );
 
     const renderDontHaveAccountButton = () => (
         <TouchableOpacity
-            style={{ marginTop: ScreenWidth * 0.65, alignItems: "center" }}
+            style={{
+                marginTop: ScreenWidth * 0.65,
+                alignItems: "center",
+                marginBottom: 84,
+            }}
+            onPress={() => navigation.goBack()}
         >
-            <Text style={{ fontWeight: "700" }}>Don't have an account</Text>
+            <Text style={{ fontWeight: "700" }}>Alreacy have an account</Text>
         </TouchableOpacity>
     );
 
@@ -97,9 +149,11 @@ export default function LoginScreen() {
             }}
         >
             {renderHeader()}
-            {renderTextInputs()}
-            {renderLoginButton()}
-            {renderDontHaveAccountButton()}
+            <ScrollView>
+                {renderTextInputs()}
+                {renderRegisterButton()}
+                {renderDontHaveAccountButton()}
+            </ScrollView>
         </SafeAreaView>
     );
 }
